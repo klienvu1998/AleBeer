@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">AleBeer</string>
+    <string name="save">Save</string>
+    <string name="note">Note</string>
 </resources>

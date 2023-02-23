@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="btnSaveBeer" type="id"/>
+    <item name="ivBeer" type="id" />
+    <item name="tvBeerName" type="id" />
+    <item name="tvBeerPrice" type="id" />
+    <item name="edtBeerNote" type="id" />
+</resources>

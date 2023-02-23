@@ -5,15 +5,92 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.hyvu.alebeer.R
+import com.hyvu.alebeer.databinding.FragmentBeerBinding
+import com.hyvu.alebeer.model.BeerItem
+import com.hyvu.alebeer.utils.EventObserver
+import com.hyvu.alebeer.view.binder.BeerBinder
+import com.hyvu.alebeer.viewmodel.BeerViewModel
+import com.hyvu.alebeer.viewmodel.factory.BeerViewModelFactory
+import mva3.adapter.ListSection
+import mva3.adapter.MultiViewAdapter
+import mva3.adapter.util.InfiniteLoadingHelper
 
 class BeerFragment : Fragment() {
+
+    private lateinit var mBinding: FragmentBeerBinding
+    private val mViewModel by lazy {
+        ViewModelProvider(this, BeerViewModelFactory())[BeerViewModel::class.java]
+    }
+
+    private val mAdapter by lazy {
+        MultiViewAdapter()
+    }
+    private lateinit var infiniteLoadingHelper: InfiniteLoadingHelper
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_beer, container, false)
+    ): View {
+        mBinding = FragmentBeerBinding.inflate(inflater, container, false)
+        return mBinding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        initView()
+        initData()
+        observerLiveData()
+    }
+
+    private fun initData() {
+        mViewModel.fetchBeers(1)
+    }
+
+    private fun observerLiveData() {
+        mViewModel.beers.observe(viewLifecycleOwner, EventObserver {
+            val isInit = mViewModel.beerSection.data.isEmpty()
+            mViewModel.beerSection.addAll(it)
+            if (isInit) mBinding.rcvBeer.scrollToPosition(0)
+        })
+
+        mViewModel.isLoadMore.observe(viewLifecycleOwner) { isLoadMore ->
+            if (isLoadMore == true) {
+                infiniteLoadingHelper.markCurrentPageLoaded()
+            } else {
+                infiniteLoadingHelper.markAllPagesLoaded()
+            }
+        }
+    }
+
+    private fun initView() {
+        mAdapter.registerItemBinders(BeerBinder(mBeerBinderListener))
+        mBinding.rcvBeer.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+        mBinding.rcvBeer.adapter = mAdapter
+        mBinding.rcvBeer.addItemDecoration(DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL))
+
+        infiniteLoadingHelper = object : InfiniteLoadingHelper(mBinding.rcvBeer, R.layout.item_loading_footer) {
+            override fun onLoadNextPage(page: Int) {
+                mViewModel.fetchBeers(page + 1)
+            }
+        }
+
+        mAdapter.addSection(mViewModel.beerSection)
+        mAdapter.setInfiniteLoadingHelper(infiniteLoadingHelper)
+    }
+
+    private val mBeerBinderListener = object : BeerBinder.Listener {
+        override fun onSave(item: BeerItem) {
+
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        mAdapter.removeAllSections()
     }
 
 }
