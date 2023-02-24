@@ -1,5 +1,6 @@
 package com.hyvu.alebeer.model
 
+import com.hyvu.alebeer.data.local.entity.BeerDbEntity
 import com.hyvu.alebeer.data.remote.entity.BeerData
 
 class BeerItem(
@@ -22,6 +23,18 @@ class BeerItem(
                 localPath,
                 "",
                 false
+            )
+        }
+
+        fun mapData(beerDbEntity: BeerDbEntity): BeerItem {
+            return BeerItem(
+                beerDbEntity.id,
+                beerDbEntity.imageUrl,
+                beerDbEntity.name,
+                beerDbEntity.price,
+                beerDbEntity.imagePath,
+                beerDbEntity.note,
+                true
             )
         }
     }

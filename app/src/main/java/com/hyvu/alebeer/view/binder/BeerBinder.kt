@@ -10,7 +10,7 @@ import mva3.adapter.ItemViewHolder
 class BeerBinder(private val mListener: Listener): ItemBinder<BeerItem, BeerBinder.BeerViewHolder>() {
 
     interface Listener {
-        fun onSave(item: BeerItem)
+        fun onSave(item: BeerItem, position: Int)
     }
 
     inner class BeerViewHolder(v: View): ItemViewHolder<BeerItem>(v) {
@@ -23,14 +23,14 @@ class BeerBinder(private val mListener: Listener): ItemBinder<BeerItem, BeerBind
     }
 
     override fun bindViewHolder(holder: BeerViewHolder?, item: BeerItem?) {
-        holder?.beerItemView?.bindView(item)
+        holder?.beerItemView?.bindView(item, holder.absoluteAdapterPosition)
     }
 
     override fun createViewHolder(parent: ViewGroup?): BeerViewHolder {
         return BeerViewHolder(BeerItemView(parent!!.context).apply {
             setListener(object : BeerItemView.Listener {
-                override fun onSave(item: BeerItem) {
-                    mListener.onSave(item)
+                override fun onSave(item: BeerItem, position: Int) {
+                    mListener.onSave(item, position)
                 }
             })
         })

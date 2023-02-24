@@ -2,4 +2,6 @@
     <string name="app_name">AleBeer</string>
     <string name="save">Save</string>
     <string name="note">Note</string>
+    <string name="save_fail">Saving failed</string>
+    <string name="saving">Saving</string>
 </resources>

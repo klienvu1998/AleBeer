@@ -31,14 +31,35 @@ class BeerViewModel(
 
     fun fetchBeers(page: Int) {
         viewModelScope.launch {
+            // only load from local when page = 1
+            if (page == 1) beerRepo.getBeersFromDb()
+            // load from server
             val response = beerRepo.fetchBeers(page)
+
             if (response is BaseResponse.Success) {
+                val beerItems: ArrayList<BeerItem> = ArrayList()
                 val beers = response.data.data
-                _beers.postValue(Event(beers.map { BeerItem.mapData(it, "") }))
+                // check if data exist in database
+                beers.forEach { beerData ->
+                    val localItem = beerRepo.getIfExistLocalItem(beerData.id)
+                    if (localItem != null) {
+                        beerItems.add(localItem)
+                    } else {
+                        beerItems.add(BeerItem.mapData(beerData, ""))
+                    }
+                }
+                _beers.postValue(Event(beerItems))
                 _isLoadMore.postValue(response.data.loadMore)
             } else {
 
             }
+        }
+    }
+
+    fun saveBeer(beer: BeerItem, onComplete: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val isInserted = beerRepo.insertBeersToDb(beer)
+            onComplete.invoke(isInserted)
         }
     }
 
