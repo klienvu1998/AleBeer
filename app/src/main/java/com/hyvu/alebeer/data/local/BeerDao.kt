@@ -1,6 +1,5 @@
 package com.hyvu.alebeer.data.local
 
-import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -20,4 +19,7 @@ interface BeerDao {
 
     @Query("DELETE FROM beer WHERE id = :id")
     suspend fun deleteBeer(id: Int): Int
+
+    @Query("UPDATE beer SET note = :note WHERE id = :id")
+    suspend fun updateNote(id: Int, note: String): Int
 }

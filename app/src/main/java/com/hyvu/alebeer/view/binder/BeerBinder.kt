@@ -12,6 +12,7 @@ class BeerBinder(private val mode: BeerItemView.Mode, private val mListener: Lis
     interface Listener {
         fun onSave(item: BeerItem, position: Int) {}
         fun onDelete(item: BeerItem, position: Int) {}
+        fun onUpdate(item: BeerItem, position: Int) {}
     }
 
     inner class BeerViewHolder(v: View): ItemViewHolder<BeerItem>(v) {
@@ -36,6 +37,10 @@ class BeerBinder(private val mode: BeerItemView.Mode, private val mListener: Lis
 
                 override fun onDelete(item: BeerItem, position: Int) {
                     mListener.onDelete(item, position)
+                }
+
+                override fun onUpdate(item: BeerItem, position: Int) {
+                    mListener.onUpdate(item, position)
                 }
             })
         })

@@ -66,6 +66,10 @@ class BeerFragment : Fragment() {
         mViewModel.onDelete.observe(viewLifecycleOwner, EventObserver { position ->
             mAdapter.notifyItemChanged(position)
         })
+
+        mViewModel.onUpdate.observe(viewLifecycleOwner, EventObserver { position ->
+            mAdapter.notifyItemChanged(position)
+        })
     }
 
     private fun initView() {

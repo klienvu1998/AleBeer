@@ -35,6 +35,11 @@ class BeerViewModel(
     val onDelete: LiveData<Event<BeerItem>>
         get() = _onDelete
 
+    // int is position of beer fragment
+    private val _onUpdate: MutableLiveData<Event<Int>> = MutableLiveData()
+    val onUpdate: LiveData<Event<Int>>
+        get() = _onUpdate
+
     init {
         fetchBeers(1)
     }
@@ -85,6 +90,20 @@ class BeerViewModel(
                 onComplete.invoke(true)
             } else  {
                 onComplete.invoke(false)
+            }
+        }
+    }
+
+    fun updateBeerNoteFromDb(item: BeerItem, onComplete: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val position = beerRepo.updateNoteFromDb(item)
+            if (position >= 0) {
+                _onUpdate.postValue(Event(position))
+                onComplete.invoke(true)
+            } else if (position == -1) {
+                onComplete.invoke(false)
+            } else if (position == -2) {
+                onComplete.invoke(true)
             }
         }
     }

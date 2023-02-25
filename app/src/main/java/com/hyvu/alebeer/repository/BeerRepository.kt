@@ -130,4 +130,25 @@ class BeerRepository(
         }
     }
 
+    suspend fun updateNoteFromDb(item: BeerItem): Int = withContext(ioDispatcher) {
+        try {
+            val isUpdated = beerLocalDataSource.updateNote(item.id, item.note) == 1
+            if (isUpdated) {
+                val position = beersItem.indexOfFirst { it.id == item.id }
+                if (position == -1) {
+                    localBeers[item.id] = item
+                    return@withContext -2
+                }
+                beersItem[position].apply {
+                    note = item.note
+                }
+                return@withContext position
+            } else {
+                return@withContext -1
+            }
+        } catch (e: Exception) {
+            return@withContext -1
+        }
+    }
+
 }

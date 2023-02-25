@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.hyvu.alebeer.databinding.FragmentFavoriteBinding
 import com.hyvu.alebeer.model.BeerItem
+import com.hyvu.alebeer.utils.hideSoftKeyboard
 import com.hyvu.alebeer.view.binder.BeerBinder
 import com.hyvu.alebeer.view.customview.BeerItemView
 import com.hyvu.alebeer.viewmodel.BeerViewModel
@@ -56,6 +57,10 @@ class FavoriteFragment : Fragment() {
         mBinding.rcvBeer.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         mBinding.rcvBeer.adapter = mAdapter
         mBinding.rcvBeer.addItemDecoration(DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL))
+        mBinding.rcvBeer.setOnTouchListener { view, _ ->
+            hideSoftKeyboard(view)
+            false
+        }
 
         mAdapter.addSection(mViewModel.favoriteBeersSection)
     }
@@ -63,6 +68,7 @@ class FavoriteFragment : Fragment() {
     private val mBeerBinderListener = object : BeerBinder.Listener {
         override fun onDelete(item: BeerItem, position: Int) {
             super.onDelete(item, position)
+            view?.let { hideSoftKeyboard(it) }
             mViewModel.deleteBeerFromDb(item) { isDeleted ->
                 if (isDeleted) {
                     mViewModel.favoriteBeersSection.remove(position)
@@ -73,6 +79,18 @@ class FavoriteFragment : Fragment() {
             }
         }
 
+        override fun onUpdate(item: BeerItem, position: Int) {
+            super.onUpdate(item, position)
+            view?.let { hideSoftKeyboard(it) }
+            mViewModel.updateBeerNoteFromDb(item) { isUpdated ->
+                if (isUpdated) {
+                    Toast.makeText(context, "Updated", Toast.LENGTH_SHORT).show()
+                    mAdapter.notifyItemChanged(position)
+                } else {
+                    Toast.makeText(context, "Could not update", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     override fun onDestroyView() {

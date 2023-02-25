@@ -27,6 +27,7 @@ class BeerItemView(context: Context, private val mode: Mode) : LinearLayout(cont
     interface Listener {
         fun onSave(item: BeerItem, position: Int)
         fun onDelete(item: BeerItem, position: Int)
+        fun onUpdate(item: BeerItem, position: Int)
     }
 
     private var mListener: Listener? = null
@@ -177,7 +178,7 @@ class BeerItemView(context: Context, private val mode: Mode) : LinearLayout(cont
                 mListener?.onDelete(item, position)
             }
             btnUpdate.setOnClickListener {
-
+                mListener?.onUpdate(item, position)
             }
         }
     }
