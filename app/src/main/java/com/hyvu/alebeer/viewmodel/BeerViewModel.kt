@@ -44,6 +44,8 @@ class BeerViewModel(
     val onSave: LiveData<Event<BeerItem>>
         get() = _onSave
 
+    val startTime = System.currentTimeMillis()
+
     init {
         fetchBeers(1)
     }

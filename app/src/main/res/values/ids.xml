@@ -8,4 +8,5 @@
     <item name="buttonContainer" type="id" />
     <item name="btnUpdate" type="id" />
     <item name="btnDelete" type="id" />
+    <item name="tvSaleOff" type="id" />
 </resources>

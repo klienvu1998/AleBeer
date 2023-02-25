@@ -53,7 +53,7 @@ class BeerRepository(
     suspend fun getBeersFromDb(): List<BeerDbEntity> = withContext(ioDispatcher) {
         val data = beerLocalDataSource.getBeers()
         data.forEach {
-            beersItemMap[it.id] = BeerItem.mapData(it)
+            beersItemMap[it.id] = BeerItem.mapData(it, 0L)
         }
         return@withContext data
     }

@@ -74,7 +74,7 @@ class BeerFragment : Fragment() {
     }
 
     private fun initView() {
-        mAdapter.registerItemBinders(BeerBinder(BeerItemView.Mode.NORMAL, mBeerBinderListener))
+        mAdapter.registerItemBinders(BeerBinder(BeerItemView.Mode.NORMAL, mViewModel.startTime, mBeerBinderListener))
         mBinding.rcvBeer.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         mBinding.rcvBeer.adapter = mAdapter
         mBinding.rcvBeer.addItemDecoration(DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL))

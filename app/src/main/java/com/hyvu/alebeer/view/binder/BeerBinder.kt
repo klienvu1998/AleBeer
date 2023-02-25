@@ -7,7 +7,7 @@ import com.hyvu.alebeer.view.customview.BeerItemView
 import mva3.adapter.ItemBinder
 import mva3.adapter.ItemViewHolder
 
-class BeerBinder(private val mode: BeerItemView.Mode, private val mListener: Listener): ItemBinder<BeerItem, BeerBinder.BeerViewHolder>() {
+class BeerBinder(private val mode: BeerItemView.Mode, private val startTime: Long, private val mListener: Listener): ItemBinder<BeerItem, BeerBinder.BeerViewHolder>() {
 
     interface Listener {
         fun onSave(item: BeerItem, position: Int) {}
@@ -29,7 +29,7 @@ class BeerBinder(private val mode: BeerItemView.Mode, private val mListener: Lis
     }
 
     override fun createViewHolder(parent: ViewGroup?): BeerViewHolder {
-        return BeerViewHolder(BeerItemView(parent!!.context, mode).apply {
+        return BeerViewHolder(BeerItemView(parent!!.context, mode, startTime).apply {
             setListener(object : BeerItemView.Listener {
                 override fun onSave(item: BeerItem, position: Int) {
                     mListener.onSave(item, position)

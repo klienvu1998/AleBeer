@@ -6,4 +6,6 @@
     <string name="saving">Saving</string>
     <string name="btn_update">Update</string>
     <string name="btn_delete">Delete</string>
+    <string name="sale_off_in">Sale Off In: %s</string>
+    <string name="sale">Sale Off</string>
 </resources>

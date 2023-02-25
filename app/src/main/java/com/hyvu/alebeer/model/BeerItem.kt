@@ -11,6 +11,7 @@ class BeerItem(
     var localPath: String,
     var note: String,
     var isSaved: Boolean,
+    var saveOffTime: Long
 ) {
 
     companion object {
@@ -22,11 +23,12 @@ class BeerItem(
                 beerData.price,
                 localPath,
                 "",
-                false
+                false,
+                beerData.sale_off_time
             )
         }
 
-        fun mapData(beerDbEntity: BeerDbEntity): BeerItem {
+        fun mapData(beerDbEntity: BeerDbEntity, saveOffTime: Long): BeerItem {
             return BeerItem(
                 beerDbEntity.id,
                 beerDbEntity.imageUrl,
@@ -34,7 +36,8 @@ class BeerItem(
                 beerDbEntity.price,
                 beerDbEntity.imagePath,
                 beerDbEntity.note,
-                true
+                true,
+                saveOffTime
             )
         }
     }

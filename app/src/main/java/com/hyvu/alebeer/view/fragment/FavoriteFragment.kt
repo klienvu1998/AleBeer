@@ -57,7 +57,7 @@ class FavoriteFragment : Fragment() {
     }
 
     private fun initView() {
-        mAdapter.registerItemBinders(BeerBinder(BeerItemView.Mode.FAVORITE, mBeerBinderListener))
+        mAdapter.registerItemBinders(BeerBinder(BeerItemView.Mode.FAVORITE, mViewModel.startTime, mBeerBinderListener))
         mBinding.rcvBeer.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         mBinding.rcvBeer.adapter = mAdapter
         mBinding.rcvBeer.addItemDecoration(DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL))

@@ -2,6 +2,7 @@ package com.hyvu.alebeer.view.customview
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.CountDownTimer
 import android.text.TextUtils
 import android.widget.Button
 import android.widget.EditText
@@ -15,10 +16,12 @@ import androidx.core.widget.doOnTextChanged
 import com.bumptech.glide.Glide
 import com.hyvu.alebeer.R
 import com.hyvu.alebeer.model.BeerItem
+import com.hyvu.alebeer.utils.TimeUtils
 import com.hyvu.alebeer.utils.dpToPx
+import java.lang.ref.WeakReference
 
 @SuppressLint("ViewConstructor")
-class BeerItemView(context: Context, private val mode: Mode) : LinearLayout(context) {
+class BeerItemView(context: Context, private val mode: Mode, private val startTime: Long) : LinearLayout(context) {
 
     enum class Mode {
         NORMAL, FAVORITE
@@ -47,7 +50,11 @@ class BeerItemView(context: Context, private val mode: Mode) : LinearLayout(cont
     private lateinit var btnUpdate: Button
     private lateinit var btnDelete: Button
 
+    private lateinit var tvSaleOff: TextView
+
     private var beerItem: BeerItem? = null
+
+    private var countDownTimer: CountDownTimer? = null
 
     init {
         layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
@@ -129,6 +136,20 @@ class BeerItemView(context: Context, private val mode: Mode) : LinearLayout(cont
         container.addView(tvBeerName)
         container.addView(tvBeerPrice)
 
+        tvSaleOff = TextView(context).apply {
+            id = R.id.tvSaleOff
+            layoutParams = RelativeLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT).apply {
+                addRule(RelativeLayout.RIGHT_OF, R.id.ivBeer)
+                addRule(RelativeLayout.LEFT_OF, R.id.buttonContainer)
+                addRule(RelativeLayout.BELOW, R.id.tvBeerPrice)
+                setPadding(dpToPx(context, 5f).toInt(), 0, dpToPx(context, 5f).toInt(), 0)
+            }
+            isSingleLine = true
+            maxLines = 1
+            ellipsize = TextUtils.TruncateAt.END
+        }
+        container.addView(tvSaleOff)
+
         edtBeerNote = EditText(context).apply {
             id = R.id.edtBeerNote
             layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
@@ -145,6 +166,8 @@ class BeerItemView(context: Context, private val mode: Mode) : LinearLayout(cont
 
     fun bindView(item: BeerItem?, position: Int) {
         item ?: return
+        countDownTimer?.cancel()
+        countDownTimer = null
         beerItem = item
         Glide.with(context)
             .load(item.localPath.ifEmpty { item.imageUrl })
@@ -169,11 +192,33 @@ class BeerItemView(context: Context, private val mode: Mode) : LinearLayout(cont
                     mListener?.onSave(item, position)
                 }
             }
+            // sale off text view
+            // todo should use server time
+            val saleOffInText = context.getString(R.string.sale_off_in)
+            val saleOffText = context.getString(R.string.sale)
+            if (item.saveOffTime > System.currentTimeMillis()) {
+                tvSaleOff.text = TimeUtils.formatDateHHmmSSddMM(item.saveOffTime)
+                countDownTimer = object : CountDownTimer(item.saveOffTime, 1000L) {
+                    val weakSaveOffTime = WeakReference(tvSaleOff)
+                    override fun onTick(p0: Long) {
+                        val skipTime = System.currentTimeMillis() - startTime
+                        weakSaveOffTime.get()?.text = String.format(saleOffInText, TimeUtils.formatDateHHmmSSddMM(item.saveOffTime - skipTime))
+                    }
+
+                    override fun onFinish() {
+                        item.saveOffTime = 0
+                        weakSaveOffTime.get()?.text = saleOffText
+                    }
+                }.start()
+            } else {
+                tvSaleOff.text = context.getString(R.string.sale)
+            }
         } else {
             btnDelete.isVisible = true
             btnUpdate.isVisible = true
             btnSave.isGone = true
             edtBeerNote.isEnabled = true
+            tvSaleOff.isGone = true
             btnDelete.setOnClickListener {
                 mListener?.onDelete(item, position)
             }
