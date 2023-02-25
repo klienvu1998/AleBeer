@@ -171,4 +171,8 @@ class BeerRepository(
         }
     }
 
+    fun clearData() {
+        beersItemMap.clear()
+    }
+
 }

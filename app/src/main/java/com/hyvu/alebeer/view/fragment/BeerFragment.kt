@@ -74,6 +74,19 @@ class BeerFragment : Fragment() {
     }
 
     private fun initView() {
+        mBinding.refresh.setOnRefreshListener {
+            mViewModel.refresh {
+                infiniteLoadingHelper.markAllPagesLoaded()
+                infiniteLoadingHelper = object : InfiniteLoadingHelper(mBinding.rcvBeer, R.layout.item_loading_footer) {
+                    override fun onLoadNextPage(page: Int) {
+                        mViewModel.fetchBeers(page + 1)
+                    }
+                }
+                mAdapter.setInfiniteLoadingHelper(infiniteLoadingHelper)
+                mBinding.refresh.isRefreshing = false
+            }
+        }
+
         mAdapter.registerItemBinders(BeerBinder(BeerItemView.Mode.NORMAL, mViewModel.startTime, mBeerBinderListener))
         mBinding.rcvBeer.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         mBinding.rcvBeer.adapter = mAdapter

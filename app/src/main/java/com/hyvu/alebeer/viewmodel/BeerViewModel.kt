@@ -123,4 +123,15 @@ class BeerViewModel(
         }
     }
 
+    fun refresh(onComplete: () -> Unit) {
+        viewModelScope.launch {
+            beerRepo.clearData()
+            beerSection.clear()
+            favoriteBeersSection.clear()
+            beerRepo.getBeersFromDb()
+            fetchBeers(1)
+            onComplete.invoke()
+        }
+    }
+
 }
