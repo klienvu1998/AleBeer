@@ -42,4 +42,8 @@ class BeerItem(
         }
     }
 
+    fun isNeedUpdateFromServerToDb(beerData: BeerData): Boolean {
+        return beerData.name != name || beerData.price != price || beerData.image != imageUrl
+    }
+
 }

@@ -26,10 +26,6 @@ class BeerViewModel(
     val isLoadMore: LiveData<Boolean>
         get() = _isLoadMore
 
-    private val _localBeers: MutableLiveData<Event<List<BeerItem>>> = MutableLiveData()
-    val localBeers: LiveData<Event<List<BeerItem>>>
-        get() = _localBeers
-
     // int is position of beer fragment
     private val _onDelete: MutableLiveData<Event<BeerItem>> = MutableLiveData()
     val onDelete: LiveData<Event<BeerItem>>
@@ -44,35 +40,47 @@ class BeerViewModel(
     val onSave: LiveData<Event<BeerItem>>
         get() = _onSave
 
+    private val _isUpdateFavorite: MutableLiveData<Event<Boolean>> = MutableLiveData()
+    val isUpdateFavorite: LiveData<Event<Boolean>>
+        get() = _isUpdateFavorite
+
     val startTime = System.currentTimeMillis()
 
     init {
-        fetchBeers(1)
+        viewModelScope.launch {
+            beerRepo.getBeersFromDb()
+            fetchBeers(1)
+        }
     }
 
     fun fetchBeers(page: Int) {
         viewModelScope.launch {
-            // only load from local when page = 1
-            if (page == 1) {
-                val localBeers = beerRepo.getBeersFromDb()
-                _localBeers.postValue(Event(localBeers.map { BeerItem.mapData(it, 0L) }))
-            }
             // load from server
             val response = beerRepo.fetchBeers(page)
 
             if (response is BaseResponse.Success) {
                 val beerItems: ArrayList<BeerItem> = ArrayList()
                 val beers = response.data.data
+                var isNeedUpdateLocal = false
                 // check if data exist in database
                 beers.forEach { beerData ->
                     val localItem = beerRepo.getIfExistLocalItem(beerData.id)
                     if (localItem != null) {
-                        beerItems.add(localItem)
+                        if (localItem.isNeedUpdateFromServerToDb(beerData)) {
+                            isNeedUpdateLocal = true
+                            val item = beerRepo.updateBeerInfo(localItem, beerData)
+                            beerItems.add(item)
+                        } else {
+                            beerItems.add(localItem)
+                        }
                     } else {
                         beerItems.add(BeerItem.mapData(beerData, ""))
                     }
                 }
                 beerRepo.addBeerItems(beerItems)
+                favoriteBeersSection.clear()
+                favoriteBeersSection.addAll(beerRepo.getBeerLocal())
+                _isUpdateFavorite.postValue(Event(isNeedUpdateLocal))
                 _beers.postValue(Event(beerItems))
                 _isLoadMore.postValue(response.data.loadMore)
             } else {

@@ -22,4 +22,7 @@ interface BeerDao {
 
     @Query("UPDATE beer SET note = :note WHERE id = :id")
     suspend fun updateNote(id: Int, note: String): Int
+
+    @Query("UPDATE beer SET name = :name, price = :price, image_url = :imageUrl, image_path = :localPath WHERE id = :id")
+    suspend fun updateInfo(id: Int, name: String, price: String, imageUrl: String, localPath: String): Int
 }

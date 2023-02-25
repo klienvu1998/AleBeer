@@ -12,5 +12,5 @@ class BeerLocalDataSource(
     suspend fun insertBeer(beer: BeerDbEntity): Long = beerDao.insertBeer(beer)
     suspend fun deleteBeer(id: Int) = beerDao.deleteBeer(id)
     suspend fun updateNote(id: Int, note: String) = beerDao.updateNote(id, note)
-
+    suspend fun updateBeerInfo(id: Int, name: String, price: String, imageUrl: String, localPath: String) = beerDao.updateInfo(id, name, price, imageUrl, localPath)
 }

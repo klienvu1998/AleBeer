@@ -50,6 +50,8 @@ class BeerRepository(
         }
     }
 
+    fun getBeerLocal() = beersItemMap.values.filter { it.isSaved }
+
     suspend fun getBeersFromDb(): List<BeerDbEntity> = withContext(ioDispatcher) {
         val data = beerLocalDataSource.getBeers()
         data.forEach {
@@ -81,6 +83,7 @@ class BeerRepository(
         var imagePath = ""
         try {
             val imageFile = File(directory, "${beer.id}.${StringUtils.getExtensionOfUrl(beer.imageUrl)}")
+            if (imageFile.exists()) imageFile.delete()
             val url = URL(beer.imageUrl)
             inputStream = url.openStream()
             os = FileOutputStream(imageFile)
@@ -93,6 +96,7 @@ class BeerRepository(
             }
             imagePath = imageFile.path
         } catch (e: Exception) {
+            imagePath = ""
             Log.e(TAG, e.message.toString())
         } finally {
             inputStream?.close()
@@ -140,6 +144,30 @@ class BeerRepository(
             }
         } catch (e: Exception) {
             return@withContext null
+        }
+    }
+
+    suspend fun updateBeerInfo(localItem: BeerItem, serverItem: BeerData): BeerItem = withContext(ioDispatcher) {
+        try {
+            val imagePath = if (localItem.imageUrl != serverItem.image || localItem.imageUrl.isEmpty()) {
+                saveImageToInternal(BeerItem.mapData(serverItem, ""))
+            } else {
+                localItem.localPath
+            }
+            beerLocalDataSource.updateBeerInfo(serverItem.id, serverItem.name, serverItem.price, serverItem.image, imagePath)
+            return@withContext BeerItem(
+                localItem.id,
+                serverItem.image,
+                serverItem.name,
+                serverItem.price,
+                imagePath,
+                localItem.note,
+                localItem.isSaved,
+                serverItem.sale_off_time
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, e.message.toString())
+            return@withContext localItem
         }
     }
 

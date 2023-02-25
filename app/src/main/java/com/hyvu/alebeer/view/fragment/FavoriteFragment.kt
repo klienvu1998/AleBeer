@@ -47,12 +47,12 @@ class FavoriteFragment : Fragment() {
     }
 
     private fun observerLiveData() {
-        mViewModel.localBeers.observe(viewLifecycleOwner, EventObserver {
-            mViewModel.favoriteBeersSection.addAll(it)
-        })
-
         mViewModel.onSave.observe(viewLifecycleOwner, EventObserver {
             mViewModel.favoriteBeersSection.add(it)
+        })
+
+        mViewModel.isUpdateFavorite.observe(viewLifecycleOwner, EventObserver {
+            if (it) mAdapter.notifyDataSetChanged()
         })
     }
 
