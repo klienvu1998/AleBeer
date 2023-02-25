@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">AleBeer</string>
+    <string name="save">Save</string>
+    <string name="note">Note</string>
+    <string name="save_fail">Saving failed</string>
+    <string name="saving">Saving</string>
+    <string name="btn_update">Update</string>
+    <string name="btn_delete">Delete</string>
+    <string name="sale_off_in">Sale Off In: %s</string>
+    <string name="sale">Sale Off</string>
+    <string name="error_please_check_network_and_swipe_reload">Error, please check network and swipe reload</string>
 </resources>
