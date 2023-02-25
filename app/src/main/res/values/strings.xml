@@ -8,4 +8,5 @@
     <string name="btn_delete">Delete</string>
     <string name="sale_off_in">Sale Off In: %s</string>
     <string name="sale">Sale Off</string>
+    <string name="error_please_check_network_and_swipe_reload">Error, please check network and swipe reload</string>
 </resources>

@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.isGone
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -71,11 +72,21 @@ class BeerFragment : Fragment() {
             val position = mViewModel.beerSection.data.indexOfFirst { it.id == beerItem.id }
             if (position >= 0) mAdapter.notifyItemChanged(position)
         })
+
+        mViewModel.isShowEmptyScreen.observe(viewLifecycleOwner, EventObserver { isShow ->
+           showErrorScreen(isShow)
+        })
+    }
+
+    fun showErrorScreen(isShow: Boolean) {
+        mBinding.rcvBeer.isGone = isShow
+        mBinding.error.isGone = !isShow
     }
 
     private fun initView() {
         mBinding.refresh.setOnRefreshListener {
             mViewModel.refresh {
+                showErrorScreen(false)
                 infiniteLoadingHelper.markAllPagesLoaded()
                 infiniteLoadingHelper = object : InfiniteLoadingHelper(mBinding.rcvBeer, R.layout.item_loading_footer) {
                     override fun onLoadNextPage(page: Int) {

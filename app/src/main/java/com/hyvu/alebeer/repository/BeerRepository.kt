@@ -34,14 +34,18 @@ class BeerRepository(
     private val beersItemMap: HashMap<Int, BeerItem> = HashMap()
 
     suspend fun fetchBeers(page: Int): BaseResponse<BeerResponse> = withContext(ioDispatcher) {
-        val response = beerRemoteDataSource.fetchBeers(page, BEERS_PAGE_SIZE)
-        if (response.isSuccessful) {
-            val loadedData = response.body()
-            if (loadedData != null) {
-                return@withContext BaseResponse.Success(loadedData)
+        try {
+            val response = beerRemoteDataSource.fetchBeers(page, BEERS_PAGE_SIZE)
+            if (response.isSuccessful) {
+                val loadedData = response.body()
+                if (loadedData != null) {
+                    return@withContext BaseResponse.Success(loadedData)
+                }
             }
+            return@withContext BaseResponse.Error(Exception(response.message()))
+        } catch (e: Exception) {
+            return@withContext BaseResponse.Error(e)
         }
-        return@withContext BaseResponse.Error(Exception(response.message()))
     }
 
     fun getIfExistLocalItem(id: Int): BeerItem? {
@@ -51,6 +55,8 @@ class BeerRepository(
     }
 
     fun getBeerLocal() = beersItemMap.values.filter { it.isSaved }
+
+    fun getAllBeer() = beersItemMap.values.toList()
 
     suspend fun getBeersFromDb(): List<BeerDbEntity> = withContext(ioDispatcher) {
         val data = beerLocalDataSource.getBeers()

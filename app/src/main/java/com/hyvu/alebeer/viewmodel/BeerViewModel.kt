@@ -44,6 +44,10 @@ class BeerViewModel(
     val isUpdateFavorite: LiveData<Event<Boolean>>
         get() = _isUpdateFavorite
 
+    private val _isShowBeerEmptyScreen: MutableLiveData<Event<Boolean>> = MutableLiveData()
+    val isShowEmptyScreen: LiveData<Event<Boolean>>
+        get() = _isShowBeerEmptyScreen
+
     val startTime = System.currentTimeMillis()
 
     init {
@@ -58,10 +62,10 @@ class BeerViewModel(
             // load from server
             val response = beerRepo.fetchBeers(page)
 
+            var isNeedUpdateLocal = false
             if (response is BaseResponse.Success) {
                 val beerItems: ArrayList<BeerItem> = ArrayList()
                 val beers = response.data.data
-                var isNeedUpdateLocal = false
                 // check if data exist in database
                 beers.forEach { beerData ->
                     val localItem = beerRepo.getIfExistLocalItem(beerData.id)
@@ -78,14 +82,22 @@ class BeerViewModel(
                     }
                 }
                 beerRepo.addBeerItems(beerItems)
-                favoriteBeersSection.clear()
-                favoriteBeersSection.addAll(beerRepo.getBeerLocal())
-                _isUpdateFavorite.postValue(Event(isNeedUpdateLocal))
+
                 _beers.postValue(Event(beerItems))
                 _isLoadMore.postValue(response.data.loadMore)
             } else {
-
+                if (beerRepo.getAllBeer().isEmpty()) {
+                    _isShowBeerEmptyScreen.postValue(Event(true))
+                } else {
+                    _isShowBeerEmptyScreen.postValue(Event(false))
+                    beerSection.clear()
+                    beerSection.addAll(beerRepo.getAllBeer())
+                    _isLoadMore.postValue(false)
+                }
             }
+            favoriteBeersSection.clear()
+            favoriteBeersSection.addAll(beerRepo.getBeerLocal())
+            _isUpdateFavorite.postValue(Event(isNeedUpdateLocal))
         }
     }
 
