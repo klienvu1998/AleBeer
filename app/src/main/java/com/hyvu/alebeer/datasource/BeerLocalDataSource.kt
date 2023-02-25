@@ -10,5 +10,6 @@ class BeerLocalDataSource(
     suspend fun getBeers() = beerDao.getBeers()
 
     suspend fun insertBeer(beer: BeerDbEntity): Long = beerDao.insertBeer(beer)
+    suspend fun deleteBeer(id: Int) = beerDao.deleteBeer(id)
 
 }

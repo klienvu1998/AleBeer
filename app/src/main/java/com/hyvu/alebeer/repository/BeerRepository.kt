@@ -18,6 +18,7 @@ import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.URL
+import kotlin.collections.ArrayList
 
 class BeerRepository(
     private val beerRemoteDataSource: BeerRemoteDataSource,
@@ -32,7 +33,7 @@ class BeerRepository(
 
     private val beersMap: HashMap<Int, BeerData> = HashMap()
     private val localBeers: HashMap<Int, BeerItem> = HashMap()
-
+    private val beersItem: ArrayList<BeerItem> = ArrayList()
 
     suspend fun fetchBeers(page: Int): BaseResponse<BeerResponse> = withContext(ioDispatcher) {
         val response = beerRemoteDataSource.fetchBeers(page, BEERS_PAGE_SIZE)
@@ -100,5 +101,33 @@ class BeerRepository(
         return@withContext imagePath
     }
 
+    fun addBeerItems(beerItems: ArrayList<BeerItem>) {
+        synchronized(this.beersItem) {
+            this.beersItem.addAll(beerItems)
+        }
+    }
+
+    fun getBeerItems() = synchronized(beersItem) { return@synchronized beersItem }
+
+    suspend fun deleteBeerFromDb(item: BeerItem): Int = withContext(ioDispatcher) {
+        try {
+            val isDeleted = beerLocalDataSource.deleteBeer(item.id) == 1
+            if (isDeleted) {
+                val file = File(item.localPath)
+                if (file.exists()) file.delete()
+                val position = beersItem.indexOfFirst { it.id == item.id }
+                if (position == -1) return@withContext -2
+                beersItem[position].apply {
+                    isSaved = false
+                    note = ""
+                }
+                return@withContext position
+            } else {
+                return@withContext -1
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, e.message.toString())
+        }
+    }
 
 }

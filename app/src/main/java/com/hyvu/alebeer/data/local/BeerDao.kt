@@ -17,4 +17,7 @@ interface BeerDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertBeer(beer: BeerDbEntity): Long
+
+    @Query("DELETE FROM beer WHERE id = :id")
+    suspend fun deleteBeer(id: Int): Int
 }

@@ -16,6 +16,7 @@ class BeerViewModel(
 ): ViewModel() {
 
     val beerSection by lazy { ListSection<BeerItem>() }
+    val favoriteBeersSection by lazy { ListSection<BeerItem>() }
 
     private val _beers: MutableLiveData<Event<List<BeerItem>>> = MutableLiveData()
     val beers: LiveData<Event<List<BeerItem>>>
@@ -25,6 +26,15 @@ class BeerViewModel(
     val isLoadMore: LiveData<Boolean>
         get() = _isLoadMore
 
+    private val _localBeers: MutableLiveData<Event<List<BeerItem>>> = MutableLiveData()
+    val localBeers: LiveData<Event<List<BeerItem>>>
+        get() = _localBeers
+
+    // int is position of beer fragment
+    private val _onDelete: MutableLiveData<Event<BeerItem>> = MutableLiveData()
+    val onDelete: LiveData<Event<BeerItem>>
+        get() = _onDelete
+
     init {
         fetchBeers(1)
     }
@@ -32,7 +42,10 @@ class BeerViewModel(
     fun fetchBeers(page: Int) {
         viewModelScope.launch {
             // only load from local when page = 1
-            if (page == 1) beerRepo.getBeersFromDb()
+            if (page == 1) {
+                val localBeers = beerRepo.getBeersFromDb()
+                _localBeers.postValue(Event(localBeers.map { BeerItem.mapData(it, 0L) }))
+            }
             // load from server
             val response = beerRepo.fetchBeers(page)
 
@@ -48,6 +61,7 @@ class BeerViewModel(
                         beerItems.add(BeerItem.mapData(beerData, ""))
                     }
                 }
+                beerRepo.addBeerItems(beerItems)
                 _beers.postValue(Event(beerItems))
                 _isLoadMore.postValue(response.data.loadMore)
             } else {
@@ -60,6 +74,18 @@ class BeerViewModel(
         viewModelScope.launch {
             val isInserted = beerRepo.insertBeersToDb(beer)
             onComplete.invoke(isInserted)
+        }
+    }
+
+    fun deleteBeerFromDb(item: BeerItem, onComplete: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val beerItem = beerRepo.deleteBeerFromDb(item)
+            if (beerItem != null) {
+                _onDelete.postValue(Event(beerItem))
+                onComplete.invoke(true)
+            } else  {
+                onComplete.invoke(false)
+            }
         }
     }
 

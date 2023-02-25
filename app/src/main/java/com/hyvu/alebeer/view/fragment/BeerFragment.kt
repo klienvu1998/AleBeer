@@ -12,9 +12,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.hyvu.alebeer.R
 import com.hyvu.alebeer.databinding.FragmentBeerBinding
 import com.hyvu.alebeer.model.BeerItem
+import com.hyvu.alebeer.utils.EventObserver
 import com.hyvu.alebeer.utils.hideSoftKeyboard
 import com.hyvu.alebeer.utils.EventObserver
 import com.hyvu.alebeer.view.binder.BeerBinder
+import com.hyvu.alebeer.view.customview.BeerItemView
 import com.hyvu.alebeer.viewmodel.BeerViewModel
 import com.hyvu.alebeer.viewmodel.factory.BeerViewModelFactory
 import mva3.adapter.MultiViewAdapter
@@ -24,7 +26,7 @@ class BeerFragment : Fragment() {
 
     private lateinit var mBinding: FragmentBeerBinding
     private val mViewModel by lazy {
-        ViewModelProvider(this, BeerViewModelFactory())[BeerViewModel::class.java]
+        ViewModelProvider(requireActivity(), BeerViewModelFactory())[BeerViewModel::class.java]
     }
 
     private val mAdapter by lazy {
@@ -60,10 +62,14 @@ class BeerFragment : Fragment() {
                 infiniteLoadingHelper.markAllPagesLoaded()
             }
         }
+
+        mViewModel.onDelete.observe(viewLifecycleOwner, EventObserver { position ->
+            mAdapter.notifyItemChanged(position)
+        })
     }
 
     private fun initView() {
-        mAdapter.registerItemBinders(BeerBinder(mBeerBinderListener))
+        mAdapter.registerItemBinders(BeerBinder(BeerItemView.Mode.NORMAL, mBeerBinderListener))
         mBinding.rcvBeer.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         mBinding.rcvBeer.adapter = mAdapter
         mBinding.rcvBeer.addItemDecoration(DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL))

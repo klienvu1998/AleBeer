@@ -5,4 +5,7 @@
     <item name="tvBeerName" type="id" />
     <item name="tvBeerPrice" type="id" />
     <item name="edtBeerNote" type="id" />
+    <item name="buttonContainer" type="id" />
+    <item name="btnUpdate" type="id" />
+    <item name="btnDelete" type="id" />
 </resources>
