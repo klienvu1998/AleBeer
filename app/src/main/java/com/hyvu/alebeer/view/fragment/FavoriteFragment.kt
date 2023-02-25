@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.hyvu.alebeer.databinding.FragmentFavoriteBinding
 import com.hyvu.alebeer.model.BeerItem
+import com.hyvu.alebeer.utils.EventObserver
 import com.hyvu.alebeer.utils.hideSoftKeyboard
 import com.hyvu.alebeer.view.binder.BeerBinder
 import com.hyvu.alebeer.view.customview.BeerItemView
@@ -50,6 +51,9 @@ class FavoriteFragment : Fragment() {
             mViewModel.favoriteBeersSection.addAll(it)
         })
 
+        mViewModel.onSave.observe(viewLifecycleOwner, EventObserver {
+            mViewModel.favoriteBeersSection.add(it)
+        })
     }
 
     private fun initView() {

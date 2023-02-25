@@ -10,7 +10,7 @@ class BeerItem(
     val price: String,
     var localPath: String,
     var note: String,
-    var isSaved: Boolean
+    var isSaved: Boolean,
 ) {
 
     companion object {

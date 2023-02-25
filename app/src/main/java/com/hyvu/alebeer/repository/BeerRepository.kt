@@ -31,16 +31,13 @@ class BeerRepository(
         private const val BEERS_PAGE_SIZE = 20
     }
 
-    private val beersMap: HashMap<Int, BeerData> = HashMap()
-    private val localBeers: HashMap<Int, BeerItem> = HashMap()
-    private val beersItem: ArrayList<BeerItem> = ArrayList()
+    private val beersItemMap: HashMap<Int, BeerItem> = HashMap()
 
     suspend fun fetchBeers(page: Int): BaseResponse<BeerResponse> = withContext(ioDispatcher) {
         val response = beerRemoteDataSource.fetchBeers(page, BEERS_PAGE_SIZE)
         if (response.isSuccessful) {
             val loadedData = response.body()
             if (loadedData != null) {
-                loadedData.data.forEach { beersMap[it.id] = it }
                 return@withContext BaseResponse.Success(loadedData)
             }
         }
@@ -48,15 +45,15 @@ class BeerRepository(
     }
 
     fun getIfExistLocalItem(id: Int): BeerItem? {
-        synchronized(localBeers) {
-            return localBeers[id]
+        synchronized(beersItemMap) {
+            return beersItemMap[id]
         }
     }
 
     suspend fun getBeersFromDb(): List<BeerDbEntity> = withContext(ioDispatcher) {
         val data = beerLocalDataSource.getBeers()
         data.forEach {
-            localBeers[it.id] = BeerItem.mapData(it)
+            beersItemMap[it.id] = BeerItem.mapData(it)
         }
         return@withContext data
     }
@@ -66,6 +63,9 @@ class BeerRepository(
         val beersDb = BeerDbEntity.mapData(beer, path)
         val insertedId = beerLocalDataSource.insertBeer(beersDb)
         val isInserted = insertedId != -1L
+        if (isInserted) {
+            beersItemMap[beer.id] = beer
+        }
         beer.isSaved = isInserted
         return@withContext isInserted
     }
@@ -102,52 +102,44 @@ class BeerRepository(
     }
 
     fun addBeerItems(beerItems: ArrayList<BeerItem>) {
-        synchronized(this.beersItem) {
-            this.beersItem.addAll(beerItems)
+        synchronized(this.beersItemMap) {
+            beerItems.forEach {
+                this.beersItemMap[it.id] = it
+            }
         }
     }
 
-    fun getBeerItems() = synchronized(beersItem) { return@synchronized beersItem }
-
-    suspend fun deleteBeerFromDb(item: BeerItem): Int = withContext(ioDispatcher) {
+    suspend fun deleteBeerFromDb(item: BeerItem): BeerItem? = withContext(ioDispatcher) {
         try {
             val isDeleted = beerLocalDataSource.deleteBeer(item.id) == 1
             if (isDeleted) {
                 val file = File(item.localPath)
                 if (file.exists()) file.delete()
-                val position = beersItem.indexOfFirst { it.id == item.id }
-                if (position == -1) return@withContext -2
-                beersItem[position].apply {
+                val beerItemResult = beersItemMap[item.id]?.apply {
                     isSaved = false
                     note = ""
                 }
-                return@withContext position
+                return@withContext beerItemResult
             } else {
-                return@withContext -1
+                return@withContext null
             }
         } catch (e: Exception) {
             Log.e(TAG, e.message.toString())
+            return@withContext null
         }
     }
 
-    suspend fun updateNoteFromDb(item: BeerItem): Int = withContext(ioDispatcher) {
+    suspend fun updateNoteFromDb(item: BeerItem): BeerItem? = withContext(ioDispatcher) {
         try {
             val isUpdated = beerLocalDataSource.updateNote(item.id, item.note) == 1
             if (isUpdated) {
-                val position = beersItem.indexOfFirst { it.id == item.id }
-                if (position == -1) {
-                    localBeers[item.id] = item
-                    return@withContext -2
-                }
-                beersItem[position].apply {
-                    note = item.note
-                }
-                return@withContext position
+                beersItemMap[item.id] = item
+                return@withContext item
             } else {
-                return@withContext -1
+                return@withContext null
             }
         } catch (e: Exception) {
-            return@withContext -1
+            return@withContext null
         }
     }
 

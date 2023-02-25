@@ -14,7 +14,6 @@ import com.hyvu.alebeer.databinding.FragmentBeerBinding
 import com.hyvu.alebeer.model.BeerItem
 import com.hyvu.alebeer.utils.EventObserver
 import com.hyvu.alebeer.utils.hideSoftKeyboard
-import com.hyvu.alebeer.utils.EventObserver
 import com.hyvu.alebeer.view.binder.BeerBinder
 import com.hyvu.alebeer.view.customview.BeerItemView
 import com.hyvu.alebeer.viewmodel.BeerViewModel
@@ -63,12 +62,14 @@ class BeerFragment : Fragment() {
             }
         }
 
-        mViewModel.onDelete.observe(viewLifecycleOwner, EventObserver { position ->
-            mAdapter.notifyItemChanged(position)
+        mViewModel.onDelete.observe(viewLifecycleOwner, EventObserver { beerItem ->
+            val position = mViewModel.beerSection.data.indexOfFirst { it.id == beerItem.id }
+            if (position >= 0) mAdapter.notifyItemChanged(position)
         })
 
-        mViewModel.onUpdate.observe(viewLifecycleOwner, EventObserver { position ->
-            mAdapter.notifyItemChanged(position)
+        mViewModel.onUpdate.observe(viewLifecycleOwner, EventObserver { beerItem ->
+            val position = mViewModel.beerSection.data.indexOfFirst { it.id == beerItem.id }
+            if (position >= 0) mAdapter.notifyItemChanged(position)
         })
     }
 

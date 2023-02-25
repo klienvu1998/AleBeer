@@ -36,9 +36,13 @@ class BeerViewModel(
         get() = _onDelete
 
     // int is position of beer fragment
-    private val _onUpdate: MutableLiveData<Event<Int>> = MutableLiveData()
-    val onUpdate: LiveData<Event<Int>>
+    private val _onUpdate: MutableLiveData<Event<BeerItem>> = MutableLiveData()
+    val onUpdate: LiveData<Event<BeerItem>>
         get() = _onUpdate
+
+    private val _onSave: MutableLiveData<Event<BeerItem>> = MutableLiveData()
+    val onSave: LiveData<Event<BeerItem>>
+        get() = _onSave
 
     init {
         fetchBeers(1)
@@ -78,6 +82,9 @@ class BeerViewModel(
     fun saveBeer(beer: BeerItem, onComplete: (Boolean) -> Unit) {
         viewModelScope.launch {
             val isInserted = beerRepo.insertBeersToDb(beer)
+            if (isInserted) {
+                _onSave.postValue(Event(beer))
+            }
             onComplete.invoke(isInserted)
         }
     }
@@ -96,14 +103,12 @@ class BeerViewModel(
 
     fun updateBeerNoteFromDb(item: BeerItem, onComplete: (Boolean) -> Unit) {
         viewModelScope.launch {
-            val position = beerRepo.updateNoteFromDb(item)
-            if (position >= 0) {
-                _onUpdate.postValue(Event(position))
+            val beerItem = beerRepo.updateNoteFromDb(item)
+            if (beerItem != null) {
+                _onUpdate.postValue(Event(beerItem))
                 onComplete.invoke(true)
-            } else if (position == -1) {
+            } else {
                 onComplete.invoke(false)
-            } else if (position == -2) {
-                onComplete.invoke(true)
             }
         }
     }
